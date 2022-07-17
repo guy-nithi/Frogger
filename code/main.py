@@ -35,26 +35,35 @@ clock = pygame.time.Clock()
 
 # Groups
 all_sprites = AllSprites()
+obstacle_sprites = pygame.sprite.Group()
 
 # Sprites
-player = Player((600,400),all_sprites)
+player = Player((2062,3274),all_sprites, obstacle_sprites)
 
 # Timer
 car_timer = pygame.event.custom_type()
 pygame.time.set_timer(car_timer,50)
 pos_list = []
 
+font = pygame.font.Font(None, 50)
+text_surf = font.render('You Won!',True,'White')
+text_rect = text_surf.get_rect(center = (WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+
+# Music
+music = pygame.mixer.Sound('./audio/music.mp3')
+music.play(-1)
+
 # Sprite setup
 for file_name, pos_list in SIMPLE_OBJECTS.items():
     path = f'./graphics/objects/simple/{file_name}.png'
     surf = pygame.image.load(path).convert_alpha()
     for pos in pos_list:
-        SimpleSprite(surf,pos,all_sprites)
+        SimpleSprite(surf,pos,[all_sprites, obstacle_sprites])
 
 for file_name, pos_list in LONG_OBJECTS.items():
     surf = pygame.image.load(f'./graphics/objects/long/{file_name}.png').convert_alpha()
     for pos in pos_list:
-        LongSprite(surf,pos,all_sprites)
+        LongSprite(surf,pos,[all_sprites, obstacle_sprites])
 
 # Game loop
 while True:
@@ -68,7 +77,7 @@ while True:
             if random_pos not in pos_list:
                 pos_list.append(random_pos)
                 pos = (random_pos[0],random_pos[1] + randint(-8,8))
-                Car(pos,all_sprites)
+                Car(pos,[all_sprites,obstacle_sprites])
             if len(pos_list) > 5:
                 del pos_list[0]
 
@@ -78,12 +87,16 @@ while True:
     # draw a bg
     display_surface.fill('black')
 
-    # Update
-    all_sprites.update(dt)
+    if player.pos.y >= 1180:
+        # Update
+        all_sprites.update(dt)
 
-    # Draw
-    # all_sprites.draw(display_surface)
-    all_sprites.customize_draw()
+        # Draw
+        # all_sprites.draw(display_surface)
+        all_sprites.customize_draw()
+    else:
+        display_surface.fill('teal')
+        display_surface.blit(text_surf,text_rect)
 
     # Update the display_surface -> drawing the frame
     pygame.display.update()
